@@ -202,7 +202,10 @@ def generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa="Sunda", cha
         system_instruction = f"Jawablah dengan sopan dan informatif: {user_prompt}"
 
     # formatted_history = [{"message": m[0], "response": m[1]} for m in history] if history else None
-    formatted_history = [{"message": m["message"], "response": m["response"]} for m in history] if history else None
+    formatted_history = [
+        {"message": m["message"], "response": m["response"]} if isinstance(m, dict) else {"message": m[0], "response": m[1]}
+        for m in history
+    ] if history else None
     response = call_groq_api(prompt=user_prompt, history=formatted_history, system_instruction=system_instruction)
     return response
 
