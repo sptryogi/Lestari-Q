@@ -11,102 +11,7 @@ import docx
 import time
 import tiktoken
 
-# relasi_tutur = {
-#     "bapak": {"anak": "Loma", "istri": "Loma", "teman": "Loma", "atasan": "Halus", "ibu": "Loma"}, # Tambahan: 'ibu'
-#     "ibu": {"anak": "Loma", "suami": "Loma", "teman": "Loma", "atasan": "Halus", "bapak": "Loma"}, # Tambahan: 'bapak'
-#     "anak": {"bapak": "Halus", "ibu": "Halus", "teman": "Loma", "guru": "Halus", "orang dewasa": "Halus"}, # 'Loma/kasar' menjadi 'Loma', Tambahan: 'orang dewasa'
-#     "atasan": {"bawahan": "Loma"},
-# }
 
-# def deteksi_relasi_kutipan(teks):
-#     hasil = []
-#     pola_list = [
-#     r"(\w+)\s+(?:berkata|menjawab|ujar|pun berkata|menyuruh|meminta|menasihati|berseru|berbicara)\s+(?:kepada|dengan)\s+(\w+):\s+\"(.*?)\"",
-#     r"kata\s+(\w+)\s+kepada\s+(\w+),?\s*\"(.*?)\"",
-#     r"ujar\s+(\w+)\s+kepada\s+(\w+),?\s*\"(.*?)\"",
-#     # Tambahkan pola lain jika ada variasi umum yang Anda ingin deteksi
-#     ]
-
-#     for pola in pola_list:
-#         cocok = re.findall(pola, teks, flags=re.IGNORECASE)
-#         for pembicara, pendengar, kutipan in cocok:
-#             # Normalisasi ke lowercase
-#             pembicara_lower = pembicara_raw.lower()
-#             pendengar_lower = pendengar_raw.lower()
-            
-#             # Coba cari padanan di relasi_tutur berdasarkan kata kunci
-#             pembicara_key = None
-#             for key in relasi_tutur.keys():
-#                 if key in pembicara_lower: # Cek jika kata kunci ada dalam nama pembicara yang terdeteksi (misal 'pak budi' -> 'bapak')
-#                     pembicara_key = key
-#                     break
-            
-#             pendengar_key = None
-#             if pembicara_key: # Hanya cari pendengar jika pembicara dikenali
-#                 for key in relasi_tutur[pembicara_key].keys():
-#                     if key in pendengar_lower: # Cek jika kata kunci ada dalam nama pendengar yang terdeteksi
-#                         pendengar_key = key
-#                         break
-            
-#             tingkat = "L1" # Default jika tidak ditemukan relasi yang pas
-#             if pembicara_key and pendengar_key:
-#                 tingkat = relasi_tutur.get(pembicara_key, {}).get(pendengar_key, "L1")
-            
-#             if tingkat == "Loma/kasar":
-#                 tingkat = "Loma" # Menetapkan default jika deteksi adalah 'Loma/kasar'
-            
-#             hasil.append({
-#                 "pembicara": pembicara_raw, # Menyimpan nama asli
-#                 "pendengar": pendengar_raw, # Menyimpan nama asli
-#                 "kutipan": kutipan.strip(),
-#                 "tingkat": tingkat
-#             })
-
-#     # Fallback ke pemanggilan API DeepSeek jika tidak ada deteksi regex yang cocok
-#     if not hasil:
-#         instruksi = (
-#             "Identifikasi apakah ada kalimat langsung (kutipan) dalam teks berikut.\n"
-#             "Jika ada, tentukan siapa pembicara dan siapa pendengarnya, serta kalimat langsung (kutipan)nya.\n"
-#             "Kemudian tentukan tingkat tutur sesuai relasi sosial dari daftar ini:\n"
-#             "- bapak → anak = Loma\n"
-#             "- bapak → isteri = Loma\n"
-#             "- bapak → teman = Loma\n"
-#             "- bapak → atasan = Halus\n"
-#             "- anak → bapak/ibu = Halus\n"
-#             "- anak → orang dewasa/Guru = Halus\n" # Perbarui di sini juga
-#             "- anak → teman = Loma/kasar\n"
-#             "- ibu → anak = Loma\n"
-#             "- ibu → suami = Loma\n"
-#             "- ibu → teman = Loma\n"
-#             "- ibu → atasan = Halus\n"
-#             "- atasan → bawahan = Loma\n"
-#             "Jika relasi tidak tercantum, tentukan tingkat tutur berdasarkan konteks dan norma kesopanan umum dalam bahasa Sunda (Loma/Halus).\n"
-#             "Jawaban dalam format:\n"
-#             "Pembicara: ...\nPendengar: ...\nKutipan: \"...\"\nTingkat: ..."
-#         )
-#         response_llm, _, _ = call_deepseek_api(teks, system_instruction=instruksi) # Ganti nama variabel agar tidak ambigu
-#         match = re.search(r"Pembicara: (.*?)\nPendengar: (.*?)\nKutipan: \"(.*?)\"\nTingkat: (.*?)\b", response_llm, re.DOTALL)
-#         if match:
-#             pembicara, pendengar, kutipan, tingkat = match.groups()
-#             hasil.append({
-#                 "pembicara": pembicara.strip(),
-#                 "pendengar": pendengar.strip(),
-#                 "kutipan": kutipan.strip(),
-#                 "tingkat": tingkat.strip().upper()
-#             })
-
-#     return hasil
-
-# def sisipkan_kutipan_ke_system_instruction(teks, instruksi_awal):
-#     kutipan = deteksi_relasi_kutipan(teks)
-#     if not kutipan:
-#         return instruksi_awal
-
-#     bagian = "\n\nTerdeteksi kutipan langsung berikut:\n"
-#     for k in kutipan:
-#         bagian += f"- Pembicara: {k['pembicara']}, Pendengar: {k['pendengar']}, Tingkat: {k['tingkat']}, Kutipan: \"{k['kutipan']}\"\n"
-
-#     return instruksi_awal + bagian
 
 @st.cache_resource
 def call_groq_api(prompt, history=None, system_instruction=None):
@@ -166,23 +71,14 @@ def generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa="Sunda", cha
     system_instruction = ""
     user_prompt = user_input # Pastikan user_prompt merujuk ke input asli pengguna
     
-    # Deteksi kutipan dan tentukan tingkat tutur utama dari kutipan
-    # deteksi_hasil_kutipan = deteksi_relasi_kutipan(user_prompt)
-    # tingkat_tutur_kutipan_utama = None
-    
-    # if deteksi_hasil_kutipan:
-    #     tingkat_tutur_kutipan_utama = deteksi_hasil_kutipan[0]['tingkat'] # Ambil dari kutipan pertama
-    
-    # # Prioritaskan tingkat tutur dari kutipan jika terdeteksi
-    # final_klasifikasi_bahasa = tingkat_tutur_kutipan_utama if tingkat_tutur_kutipan_utama else klasifikasi_bahasa_umum
- 
+
     # Instruksi berdasarkan fitur dan mode bahasa
     if fitur == "chatbot":
         if mode_bahasa == "Sunda":
             if chat_mode == "Ngobrol":
-                system_instruction = f"""Sok ngajawab ku basa Sunda sanajan ditanya ku basa sejen. Ngagunakeun kecap {klasifikasi_bahasa_umum}, nalika ngajawab. Mitra obrolan anjeun yuswa {user_age} taun. Mangga saluyukeun gaya nyarita anjeun ka umur pasangan obrolan anjeun.
-                                Ulah sok make kecap-kecap anu lain basa Sunda!. Gunakeun tata basa Sunda anu alus tur bener. Jawaban anjeun kedah rapih, henteu pabalatak.
-                                Unggal waktos Anjeun ngucapkeun kecap ("Nak"), robah jadi ("Jang"). Teu kungsi typo. Jika anda ditanya "Kumaha damang?" atau "kumaha damang" tolong jawab selalu dengan "Saé, anjeun kumaha?" tapi selain ditanya itu jangan jawab "Saé, anjeun kumaha?".
+                system_instruction = f"""Selalu jawab dalam bahasa Sunda meskipun ditanya dalam bahasa lain. Gunakan kata {klasifikasi_bahasa_umum} saat menjawab. Lawan bicara Anda berusia {user_age} tahun. Sesuaikan gaya bicara Anda dengan usia lawan bicara Anda.
+                                         Jangan gunakan kata-kata yang bukan bahasa Sunda! Gunakan tata bahasa Sunda yang baik dan benar. Jawaban Anda harus rapi, tidak berantakan.
+                                         Setiap kali Anda mengucapkan kata ("Nak"), gantilah menjadi ("Jang"). Jangan salah ketik. Jika Anda ditanya "kumaha damang?" atau "Kumaha damang?", harap selalu menjawab dengan "Saé, Anjeun kumaha?". Selain itu, jangan menjawab "Saé, Anjeun kumaha?".
                                        """
                 system_instruction += f"""Hanya jika terdapat kalimat langsung (kutipan), gunakan tingkat tutur berikut:
                                          - Jika orang tua (bapak/ibu) berbicara kepada anak, istri, atau teman → gunakan basa LOMA.
