@@ -136,6 +136,8 @@ def auth_flow():
                 if result.user:
                     st.session_state.user = result.user
                     st.session_state.email = email
+                    st.session_state["access_token"] = result.session.access_token
+                    st.session_state["refresh_token"] = result.session.refresh_token
                     st.switch_page("main.py")  # Redirect ke main.py setelah login
                 else:
                     st.error("Login gagal.")
