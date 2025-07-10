@@ -109,29 +109,21 @@ import tiktoken
 #     return instruksi_awal + bagian
 
 @st.cache_resource
-def get_deepseek_headers():
-    return {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {st.secrets['API_KEY']}"
-    }
-    
-# Fungsi untuk memanggil Deepseek API
-def call_deepseek_api(prompt, history=None,  system_instruction=None):
-    api_key = st.secrets["API_KEY"]
-    url = "https://api.deepseek.com/v1/chat/completions"
+def call_groq_api(prompt, history=None, system_instruction=None):
+    api_key = st.secrets["GROQ_API_KEY"]
+    url = "https://api.groq.com/openai/v1/chat/completions"
 
-    # headers = {
-    #     "Authorization": f"Bearer {api_key}",
-    #     "Content-Type": "application/json"
-    # }
-    headers = get_deepseek_headers()
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
 
     messages = []
     if system_instruction:
         messages.append({"role": "system", "content": system_instruction})
     else:
         messages.append({"role": "system", "content": "You are a helpful assistant."})
-        
+
     if history:
         for msg in history:
             messages.append({"role": "user", "content": msg["message"]})
@@ -140,49 +132,25 @@ def call_deepseek_api(prompt, history=None,  system_instruction=None):
     messages.append({"role": "user", "content": prompt})
 
     payload = {
-        "model": "deepseek-chat",
+        "model": "qwen/qwen3-32b",
         "messages": messages,
-        # "temperature": 0.7,
-        "temperature": 0.3,  # Rendah agar tidak kreatif mengarang kata
+        "temperature": 0.3,
         "top_p": 0.9,
-        "frequency_penalty": 1.5,  # Hukum keras kata non-Sunda
+        "frequency_penalty": 1.5,
         "presence_penalty": 0.7,
         "stream": False
     }
 
     try:
-        # response = requests.post(url, headers=headers, data=json.dumps(payload))
-        # response.raise_for_status()  # trigger exception if HTTP error
-        # data = response.json()
-        # return data["choices"][0]["message"]["content"]
-        # Mulai timer untuk request-only
-        start_request = time.time()
         response = requests.post(url, headers=headers, data=json.dumps(payload))
-        end_request = time.time()
-
-        # Mulai timer parsing JSON
-        start_json = time.time()
         response.raise_for_status()
         data = response.json()
-        end_json = time.time()
-
-        # Hitung waktu-waktunya
-        waktu_request_only = end_request - start_request
-        waktu_parsing_json = end_json - start_json
-        waktu_total = waktu_request_only + waktu_parsing_json
-
-        # Print log ke terminal (atau log server)
-        print(f"⏱️ Waktu Request-only: {waktu_request_only:.2f} detik")
-        print(f"⏱️ Waktu Parsing JSON: {waktu_parsing_json:.2f} detik")
-        print(f"⏱️ Total: {waktu_total:.2f} detik")
-
-        # Return hasil + waktu-waktu tersebut
-        return data["choices"][0]["message"]["content"], waktu_request_only, waktu_parsing_json
+        return data["choices"][0]["message"]["content"]
     except Exception as e:
-        st.error(f"Error DeepSeek: {e}")
+        st.error(f"Error Groq API: {e}")
         return "Maaf, terjadi kesalahan saat memproses permintaan Anda."
 
-def generate_text_deepseek(user_input, fitur, pasangan_cag, mode_bahasa="Sunda", chat_mode = "Ngobrol", history=None):
+def generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa="Sunda", chat_mode = "Ngobrol", history=None):
     user_age = 30  # Default
     if "user" in st.session_state:
         try:
@@ -338,8 +306,8 @@ def generate_text_deepseek(user_input, fitur, pasangan_cag, mode_bahasa="Sunda",
 
     # formatted_history = [{"message": m[0], "response": m[1]} for m in history] if history else None
     formatted_history = [{"message": m["message"], "response": m["response"]} for m in history] if history else None
-    response, waktu_request, waktu_parsing = call_deepseek_api(prompt=user_prompt, history=formatted_history, system_instruction=system_instruction)
-    return response, waktu_request, waktu_parsing
+    response = call_groq_api(prompt=user_prompt, history=formatted_history, system_instruction=system_instruction)
+    return response
 
 def bersihkan_superscript(teks):
     # Menghapus superscript angka ¹²³⁴⁵⁶⁷⁸⁹⁰ atau angka biasa setelah huruf
@@ -418,7 +386,7 @@ def pilih_berdasarkan_konteks_llm(kandidat_list, kalimat_asli, kata_typo_asli):
             Pilih satu kata yang paling sesuai secara makna dengan konteks kalimat tersebut.
             Jawab hanya dengan satu kata dari daftar, tanpa penjelasan dan jangan memberikan catatan.
             """
-    hasil = call_deepseek_api(prompt, history=None,  system_instruction=None)  # Atau Groq, OpenAI
+    hasil = call_groq_api(prompt, history=None,  system_instruction=None)  # Atau Groq, OpenAI
     hasil_bersih = hasil.strip().lower()
 
     if hasil_bersih in kandidat_list:
