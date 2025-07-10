@@ -544,10 +544,6 @@ def handle_send():
     option = st.session_state.get("fitur_selector", "Chatbot")
     fitur = "chatbot" if option == "Chatbot" else "terjemahindosunda" if option == "Terjemah Indo → Sunda" else "terjemahsundaindo"
     mode_bahasa = st.session_state.get("mode_bahasa", "Sunda") if fitur == "chatbot" else None
-    start_ai = time.time()
-    bot_response, waktu_request, waktu_parsing = generate_text_deepseek(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
-    end_ai = time.time()
-    waktu_deepseek = end_ai - start_ai
     
     if fitur == "chatbot" and mode_bahasa == "Sunda" and chat_mode == "Belajar":
         bot_response = generate_text_deepseek(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
@@ -556,8 +552,7 @@ def handle_send():
         pasangan_ekuivalen = {}
         pasangan_kata = {}
     elif fitur == "chatbot" and mode_bahasa == "Sunda":
-        start_post = time.time()
-        # bot_response = generate_text_deepseek(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
+        bot_response = generate_text_deepseek(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
         pasangan_ganti_ekuivalen = {}
         # bot_response_ekuivalen, pasangan_ganti_ekuivalen = ubah_ke_lema(bot_response, df_kamus, df_idiom)
         # bot_koreksi = koreksi_typo_dari_respon(bot_response, df_kamus)
@@ -607,16 +602,7 @@ def handle_send():
         f"<p style='color: yellow;'>{pasangan_cag}</p>",
     ]
     
-    # st.session_state.chat_history.append((user_input, bot_response, text_constraint))
-    st.session_state.chat_history.append({
-        "message": user_input,
-        "response_raw": bot_response,
-        "response": text_constraint,
-        "waktu_deepseek": waktu_deepseek,
-        "waktu_post": waktu_post,
-        "waktu_request": waktu_request,
-        "waktu_parsing": waktu_parsing
-    })
+    st.session_state.chat_history.append((user_input, bot_response, text_constraint))
     # Simpan ke database
     
     result = save_chat_message(
@@ -667,43 +653,19 @@ if "user" in st.session_state:
     #     )
 
     # For chat percobaan 1
-    # for chat in chat_history:
-    #     user_msg = chat['message']
-    #     bot_raw = chat.get('response_raw', chat['response'])  # fallback jika belum ada
-    #     bot_constraint = chat['response']
-    
-    #     # Bubble user
-    #     st.markdown(f"<div class='chat-container'><div class='chat-bubble-user'>{user_msg}</div></div>", unsafe_allow_html=True)
-    
-    #     # Bubble bot 1 - hasil AI murni
-    #     st.markdown(f"<div class='chat-container'><div class='chat-bubble-bot'>{bot_raw}</div></div>", unsafe_allow_html=True)
-    
-    #     # Bubble bot 2 - hasil setelah constraint
-    #     st.markdown(f"<div class='chat-container'><div class='chat-bubble-bot'>{bot_constraint}</div></div>", unsafe_allow_html=True)
-
-    # For chat percobaan 2
-    for chat in st.session_state.chat_history:
+    for chat in chat_history:
         user_msg = chat['message']
-        bot_raw = chat.get('response_raw', chat['response'])
+        bot_raw = chat.get('response_raw', chat['response'])  # fallback jika belum ada
         bot_constraint = chat['response']
-        waktu_deepseek = chat.get('waktu_deepseek', None)
-        waktu_post = chat.get('waktu_post', None)
-        waktu_request = chat.get('waktu_request', None)
-        waktu_parsing = chat.get('waktu_parsing', None)
-        
-        st.markdown(f"<div class='chat-container'><div class='chat-bubble-user'>{user_msg}</div></div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='chat-container'><div class='chat-bubble-bot'>{bot_raw}</div></div>", unsafe_allow_html=True)
-        if waktu_deepseek:
-            # st.markdown(f"<p style='color: yellow; font-size: 14px;'>⏱️ DeepSeek: {waktu_deepseek:.2f} detik</p>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color: yellow; font-size: 14px;'>⏱️ DeepSeek Total: {waktu_deepseek:.2f} detik</p>", unsafe_allow_html=True)
-            if waktu_request and waktu_parsing is not None:
-                st.markdown(f"⏱️ DeepSeek Request: {waktu_request:.2f} detik, Parsing: {waktu_parsing:.2f} detik", unsafe_allow_html=True)
-            else:
-                st.markdown("<p style='color: yellow;'>⏱️ DeepSeek Request & Parsing: (tidak tersedia)</p>", unsafe_allow_html=True)
     
+        # Bubble user
+        st.markdown(f"<div class='chat-container'><div class='chat-bubble-user'>{user_msg}</div></div>", unsafe_allow_html=True)
+    
+        # Bubble bot 1 - hasil AI murni
+        st.markdown(f"<div class='chat-container'><div class='chat-bubble-bot'>{bot_raw}</div></div>", unsafe_allow_html=True)
+    
+        # Bubble bot 2 - hasil setelah constraint
         st.markdown(f"<div class='chat-container'><div class='chat-bubble-bot'>{bot_constraint}</div></div>", unsafe_allow_html=True)
-        if waktu_post:
-            st.markdown(f"<p style='color: yellow; font-size: 14px;'>⏱️ Post-Processing: {waktu_post:.2f} detik</p>", unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)  # ⬅️ END OF chat-container-outer
 
