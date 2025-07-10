@@ -48,32 +48,10 @@ def call_groq_api(prompt, history=None, system_instruction=None):
     }
 
     try:
-        # response = requests.post(url, headers=headers, data=json.dumps(payload))
-        # response.raise_for_status()
-        # data = response.json()
-        # return data["choices"][0]["message"]["content"]
-        start_request = time.time()
         response = requests.post(url, headers=headers, data=json.dumps(payload))
-        end_request = time.time()
-
-        # Mulai timer parsing JSON
-        start_json = time.time()
         response.raise_for_status()
         data = response.json()
-        end_json = time.time()
-
-        # Hitung waktu-waktunya
-        waktu_request_only = end_request - start_request
-        waktu_parsing_json = end_json - start_json
-        waktu_total = waktu_request_only + waktu_parsing_json
-
-        # Print log ke terminal (atau log server)
-        print(f"⏱️ Waktu Request-only: {waktu_request_only:.2f} detik")
-        print(f"⏱️ Waktu Parsing JSON: {waktu_parsing_json:.2f} detik")
-        print(f"⏱️ Total: {waktu_total:.2f} detik")
-
-        # Return hasil + waktu-waktu tersebut
-        return data["choices"][0]["message"]["content"], waktu_request_only, waktu_parsing_json
+        return data["choices"][0]["message"]["content"]
     except Exception as e:
         st.error(f"Error Groq API: {e}")
         return "Maaf, terjadi kesalahan saat memproses permintaan Anda."
@@ -228,8 +206,8 @@ def generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa="Sunda", cha
         {"message": m["message"], "response": m["response"]} if isinstance(m, dict) else {"message": m[0], "response": m[1]}
         for m in history
     ] if history else None
-    response, waktu_request, waktu_parsing = call_groq_api(prompt=user_prompt, history=formatted_history, system_instruction=system_instruction)
-    return response, waktu_request, waktu_parsing
+    response = call_groq_api(prompt=user_prompt, history=formatted_history, system_instruction=system_instruction)
+    return response
 
 def bersihkan_superscript(teks):
     # Menghapus superscript angka ¹²³⁴⁵⁶⁷⁸⁹⁰ atau angka biasa setelah huruf
