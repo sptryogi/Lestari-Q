@@ -43,6 +43,7 @@ def call_groq_api(prompt, history=None, system_instruction=None):
         "top_p": 0.9,
         "frequency_penalty": 1.5,
         "presence_penalty": 0.7,
+        "reasoning_effort": "none",
         "stream": False
     }
 
