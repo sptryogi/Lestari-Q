@@ -7,7 +7,6 @@ from httpx import RequestError
 # SUPABASE_URL = st.secrets["SUPABASE_URL"]
 # SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
-@st.cache_resource
 def load_supabase():
     return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 supabase = load_supabase()
