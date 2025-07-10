@@ -4,7 +4,7 @@ st.set_page_config(page_title="Lestari Bahasa", page_icon="🌐", layout="center
 import pandas as pd
 import re
 import pybase64
-from AI_chatbot import generate_text_deepseek, call_deepseek_api, kapitalisasi_awal_kalimat, bersihkan_superscript, ekstrak_teks, hitung_token
+from AI_chatbot import generate_text_qwen, call_groq_api, kapitalisasi_awal_kalimat, bersihkan_superscript, ekstrak_teks, hitung_token
 from constraint1 import highlight_text, constraint_text, ubah_ke_lema, find_the_lema_pair, cari_arti_lema, bersihkan_kamus, koreksi_typo_dari_respon, ganti_sinonim_berdasarkan_tingkat
 import streamlit.components.v1 as components
 from supabase_helper import *
@@ -546,32 +546,27 @@ def handle_send():
     mode_bahasa = st.session_state.get("mode_bahasa", "Sunda") if fitur == "chatbot" else None
     
     if fitur == "chatbot" and mode_bahasa == "Sunda" and chat_mode == "Belajar":
-        bot_response = generate_text_deepseek(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
+        bot_response = generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
         text_constraint = bot_response
         pasangan_kata = {}
         pasangan_ekuivalen = {}
         pasangan_kata = {}
     elif fitur == "chatbot" and mode_bahasa == "Sunda":
-        bot_response = generate_text_deepseek(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
+        bot_response = generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
         pasangan_ganti_ekuivalen = {}
         # bot_response_ekuivalen, pasangan_ganti_ekuivalen = ubah_ke_lema(bot_response, df_kamus, df_idiom)
         # bot_koreksi = koreksi_typo_dari_respon(bot_response, df_kamus)
         text_constraint, kata_terdapat, kata_tidak_terdapat, pasangan_kata, pasangan_ekuivalen = highlight_text(bot_response, df_kamus, df_idiom, fitur)
         text_constraint = kapitalisasi_awal_kalimat(text_constraint)
-        end_post = time.time()
-        waktu_post = end_post - start_post  # Durasi post-processing
     elif fitur == "chatbot" and (mode_bahasa == "Indonesia" or mode_bahasa == "English"):
-        start_post = time.time()
-        # bot_response = generate_text_deepseek(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
+        bot_response = generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
         text_constraint = bot_response
         pasangan_kata = {}
         pasangan_ekuivalen = {}
         pasangan_kata = {}
-        end_post = time.time()
-        waktu_post = end_post - start_post  # Durasi post-processing
     elif option == "Terjemah Sunda → Indo":
         fitur = "terjemahsundaindo"
-        bot_response = generate_text_deepseek(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=None)
+        bot_response = generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=None)
         # text_constraint, kata_terdapat, kata_tidak_terdapat, pasangan_kata, pasangan_ekuivalen = ubah_ke_lema(bot_response, df_kamus, df_idiom)
         text_constraint = bot_response
         pasangan_kata = {}
@@ -579,7 +574,7 @@ def handle_send():
         pasangan_kata = {}
     elif option == "Terjemah Indo → Sunda":
         fitur = "terjemahindosunda"
-        bot_response = generate_text_deepseek(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=None)
+        bot_response = generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=None)
         # bot_response_ekuivalen, pasangan_ganti_ekuivalen = ubah_ke_lema(bot_response, df_kamus, df_idiom)
         # bot_koreksi = koreksi_typo_dari_respon(bot_response, df_kamus)
         text_constraint = ganti_sinonim_berdasarkan_tingkat(bot_response, df_kamus)
