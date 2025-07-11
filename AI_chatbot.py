@@ -207,7 +207,10 @@ def generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa="Sunda", cha
         for m in history
     ] if history else None
     response = call_groq_api(prompt=user_prompt, history=formatted_history, system_instruction=system_instruction)
-    return response, klasifikasi_bahasa_umum
+    if fitur == "chatbot" and mode_bahasa == "Sunda":
+        return response, klasifikasi_bahasa_umum
+    else:
+        return response
 
 def bersihkan_superscript(teks):
     # Menghapus superscript angka ¹²³⁴⁵⁶⁷⁸⁹⁰ atau angka biasa setelah huruf
