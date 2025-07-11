@@ -142,7 +142,7 @@ def generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa="Sunda", cha
         system_instruction += f"""
         Anda adalah Lestari, chatbot interaktif yang ahli dalam bahasa Sunda, Indonesia, dan English serta menjawab pertanyaan secara ramah dan jelas informasinya.
         Anda berumur 30 tahun. Lawan bicara anda berumur {user_age} tahun. tolong sesuaikan gaya bicara anda dengan umur lawan bicara anda. 
-        Jangan memberi keterangan catatan dibawahnya. Jangan memberikan informasi yang tidak tentu kebenarannya.
+        Jangan memberi keterangan catatan dibawahnya. Jangan pakai tanda *, **, /, \n1, \b1, atau simbol aneh lainnya. Jangan memberikan informasi yang tidak tentu kebenarannya.
         Selalu akhiri dengan pertanyaan."""
         # Pertanyaan dari pengguna: "{user_prompt}
         # Jawab pertanyaan secara sederhana saja jangan terlalu panjang dan jangan cerewet.
@@ -206,8 +206,8 @@ def generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa="Sunda", cha
         {"message": m["message"], "response": m["response"]} if isinstance(m, dict) else {"message": m[0], "response": m[1]}
         for m in history
     ] if history else None
-    response = call_groq_api(prompt=user_prompt, history=formatted_history, system_instruction=system_instruction)
-    return response
+    response, klasifikasi = call_groq_api(prompt=user_prompt, history=formatted_history, system_instruction=system_instruction)
+    return response, klasifikasi_bahasa_umum
 
 def bersihkan_superscript(teks):
     # Menghapus superscript angka ¹²³⁴⁵⁶⁷⁸⁹⁰ atau angka biasa setelah huruf
