@@ -322,6 +322,71 @@ def ganti_halus_ke_loma_di_luar_kutipan(teks, df_kamus):
 
     return "".join(hasil_final)
 
+def ganti_klasifikasi_bahasa(teks, df_kamus, klasifikasi_bahasa_umum):
+    """
+    Fungsi ini mengganti kata di luar kutipan berdasarkan klasifikasi_bahasa_umum:
+    - 'Loma' : ganti kata HALUS ke LOMA (jika ada sinonim LOMA).
+    - 'Lemes': ganti kata LOMA ke HALUS (jika ada sinonim HALUS).
+    Jika tidak ada sinonim yang cocok, kata dibold.
+    """
+    pola_kutipan = r'"[^"]+"'
+    potongan = re.split(pola_kutipan, teks)
+    kutipan = re.findall(pola_kutipan, teks)
+
+    hasil_final = []
+
+    for i, bagian in enumerate(potongan):
+        kata_baru = []
+        for kata in bagian.split():
+            suffix = re.findall(r'[.,!?]$', kata)
+            tanda_akhir = suffix[0] if suffix else ''
+            kata_bersih = re.sub(r'<[^>]+>', '', kata)  # Hilangkan tag HTML
+            kata_bersih = re.sub(r'[^\w-]', '', kata_bersih.lower())  # Bersihkan tanda baca
+
+            baris_kata = df_kamus[
+                (df_kamus['LEMA'].str.lower() == kata_bersih) |
+                (df_kamus['SUBLEMA'].str.lower() == kata_bersih)
+            ]
+
+            if not baris_kata.empty:
+                tingkat = str(baris_kata.iloc[0]['(HALUS/LOMA/KASAR)']).lower()
+                sinonim_raw = baris_kata.iloc[0]['SINONIM']
+                target_filter = []
+                if klasifikasi_bahasa_umum.lower() == 'loma':
+                    target_filter = ['loma', 'halus/loma', 'loma/halus', 'loma/kasar']
+                    jika_harus_diganti = not any(t in tingkat for t in target_filter)
+                else:  # 'Lemes'
+                    target_filter = ['halus', 'halus/loma', 'loma/halus']
+                    jika_harus_diganti = not any(t in tingkat for t in target_filter)
+
+                if jika_harus_diganti:
+                    pengganti = None
+                    if pd.notna(sinonim_raw):
+                        sinonim_list = [s.strip().lower() for s in re.split(r'[.,]', sinonim_raw) if s.strip()]
+                        for s in sinonim_list:
+                            baris_sinonim = df_kamus[
+                                ((df_kamus['LEMA'].str.lower() == s) | (df_kamus['SUBLEMA'].str.lower() == s)) &
+                                (df_kamus['(HALUS/LOMA/KASAR)'].str.lower().isin(target_filter))
+                            ]
+                            if not baris_sinonim.empty:
+                                pengganti = baris_sinonim.iloc[0]['LEMA'] if pd.notna(baris_sinonim.iloc[0]['LEMA']) else baris_sinonim.iloc[0]['SUBLEMA']
+                                break  # Ambil sinonim pertama yang cocok
+
+                    if pengganti:
+                        kata_baru.append(pengganti + tanda_akhir)
+                    else:
+                        kata_baru.append(f"<b>{kata}</b>")
+                else:
+                    kata_baru.append(kata)
+            else:
+                kata_baru.append(kata)
+
+        hasil_final.append(" ".join(kata_baru))
+
+        if i < len(kutipan):
+            hasil_final.append(kutipan[i])
+
+    return "".join(hasil_final)
 # def ganti_kata_etimologi(teks, df_kamus):
 #     # Tokenisasi kata & tanda baca
 #     kata_token = re.findall(r"\w+|[^\w\s]", teks, re.UNICODE)
@@ -774,7 +839,7 @@ def constraint_text(text, df_kamus, df_idiom):
     )
 
 
-def highlight_text(translated_text, df_kamus, df_idiom, fitur):
+def highlight_text(translated_text, df_kamus, df_idiom, fitur, kasifikasi_bahasa_umum):
     (
         kata_terdapat,
         kata_tidak_terdapat,
@@ -869,8 +934,10 @@ def highlight_text(translated_text, df_kamus, df_idiom, fitur):
 
             i += 1
         hasil_lines.append(" ".join(hasil_baris))
+        teks_hasil = "<br>".join(hasil_lines)
+        teks_hasil = ganti_klasifikasi_bahasa(teks_hasil, df_kamus, klasifikasi_bahasa_umum)
 
-    return "<br>".join(hasil_lines), kata_terdapat, kata_tidak_terdapat, pasangan_kata, pasangan_ekuivalen
+    return teks_hasil, kata_terdapat, kata_tidak_terdapat, pasangan_kata, pasangan_ekuivalen
 
 
 def ubah_ke_lema(chat_user_indo, df_kamus, df_idiom):
