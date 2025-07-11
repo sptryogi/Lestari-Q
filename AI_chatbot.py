@@ -77,7 +77,7 @@ def generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa="Sunda", cha
     if fitur == "chatbot":
         if mode_bahasa == "Sunda":
             if chat_mode == "Ngobrol":
-                system_instruction = f"""Selalu jawab dalam bahasa Sunda meskipun ditanya dalam bahasa lain. Gunakan kata {klasifikasi_bahasa_umum} saat menjawab. Lawan bicara Anda berusia {user_age} tahun. Sesuaikan gaya bicara Anda dengan usia lawan bicara Anda.
+                system_instruction = f"""Selalu jawab dalam bahasa Sunda meskipun ditanya dalam bahasa lain. Gunakan tutur kata bahasa Sunda yang {klasifikasi_bahasa_umum} saat menjawab. Lawan bicara Anda berusia {user_age} tahun. Sesuaikan gaya bicara Anda dengan usia lawan bicara Anda.
                                          Jangan gunakan kata-kata yang bukan bahasa Sunda! Gunakan tata bahasa Sunda yang baik dan benar. Jawaban Anda harus rapi, tidak berantakan.
                                          Setiap kali Anda mengucapkan kata ("Nak") atawa ("Jang"), gantilah menjadi ("Anjeun"). Jangan salah ketik. Jika Anda ditanya "kumaha damang?" atau "Kumaha damang?", harap selalu menjawab dengan "Saé, Anjeun kumaha?". Selain itu, jangan menjawab "Saé, Anjeun kumaha?".
                                        """
