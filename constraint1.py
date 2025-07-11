@@ -839,7 +839,7 @@ def constraint_text(text, df_kamus, df_idiom):
     )
 
 
-def highlight_text(translated_text, df_kamus, df_idiom, fitur, kasifikasi_bahasa_umum):
+def highlight_text(translated_text, df_kamus, df_idiom, fitur, klasifikasi_bahasa_umum):
     (
         kata_terdapat,
         kata_tidak_terdapat,
