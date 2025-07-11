@@ -206,7 +206,7 @@ def generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa="Sunda", cha
         {"message": m["message"], "response": m["response"]} if isinstance(m, dict) else {"message": m[0], "response": m[1]}
         for m in history
     ] if history else None
-    response, klasifikasi = call_groq_api(prompt=user_prompt, history=formatted_history, system_instruction=system_instruction)
+    response = call_groq_api(prompt=user_prompt, history=formatted_history, system_instruction=system_instruction)
     return response, klasifikasi_bahasa_umum
 
 def bersihkan_superscript(teks):
