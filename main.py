@@ -572,11 +572,11 @@ def handle_send():
         pasangan_ekuivalen = {}
         pasangan_kata = {}
     elif fitur == "chatbot" and mode_bahasa == "Sunda":
-        bot_response = generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
+        bot_response, klasifikasi_bahasa_umum = generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
         pasangan_ganti_ekuivalen = {}
         # bot_response_ekuivalen, pasangan_ganti_ekuivalen = ubah_ke_lema(bot_response, df_kamus, df_idiom)
         # bot_koreksi = koreksi_typo_dari_respon(bot_response, df_kamus)
-        text_constraint, kata_terdapat, kata_tidak_terdapat, pasangan_kata, pasangan_ekuivalen = highlight_text(bot_response, df_kamus, df_idiom, fitur)
+        text_constraint, kata_terdapat, kata_tidak_terdapat, pasangan_kata, pasangan_ekuivalen = highlight_text(bot_response, df_kamus, df_idiom, fitur, klasifikasi_bahasa_umum)
         text_constraint = kapitalisasi_awal_kalimat(text_constraint)
     elif fitur == "chatbot" and (mode_bahasa == "Indonesia" or mode_bahasa == "English"):
         bot_response = generate_text_qwen(user_input, fitur, pasangan_cag, mode_bahasa, chat_mode, history=history_for_prompt)
